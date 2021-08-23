@@ -29,5 +29,6 @@ jobs:
           script: |
             cd gha-sample
             git pull origin master
-            docker-compose up -d
+            docker-compose stop
+            docker-compose up -d --build
             
