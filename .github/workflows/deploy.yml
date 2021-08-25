@@ -6,9 +6,9 @@ name: CI
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -19,7 +19,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Install SSH Key for Deploy
+
+      - name: Set env
+        run: |
+          echo ::set-env name=RSYNC_SOURCE::/
+          echo ::set-env name=RSYNC_TARGET::/home/ubuntu/gha-sample
+
+      - name: Deploy by rsync
+        uses: trendyminds/github-actions-rsync@master
+        with:
+          RSYNC_OPTIONS: -avzr --delete --exclude-from=.rsyncignore
+          RSYNC_TARGET: $RSYNC_TARGET
+          RSYNC_SOURCE: $RSYNC_SOURCE
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SK }}
+          SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+          SSH_HOSTNAME: ${{ secrets.SSH_HOST }}
+
+      - name: run
         uses: appleboy/ssh-action@master
         with:
           key: ${{ secrets.SK }}
@@ -28,7 +45,5 @@ jobs:
           port: ${{secrets.SSH_PORT}}
           script: |
             cd gha-sample
-            git pull origin master
             docker-compose stop
             docker-compose up -d --build
-            
