@@ -4,16 +4,13 @@ name: CI
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
   push:
     branches: [master]
   pull_request:
     branches: [master]
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -22,15 +19,15 @@ jobs:
 
       - name: Set env
         run: |
-          echo ::set-env name=RSYNC_SOURCE::/
-          echo ::set-env name=RSYNC_TARGET::/home/ubuntu/gha-sample
+          echo "RSYNC_SOURCE=/" >> $GITHUB_ENV
+          echo "RSYNC_TARGET=/home/ubuntu/gha-sample" >> $GITHUB_ENV
 
       - name: Deploy by rsync
         uses: trendyminds/github-actions-rsync@master
         with:
           RSYNC_OPTIONS: -avzr --delete --exclude-from=.rsyncignore
-          RSYNC_TARGET: $RSYNC_TARGET
-          RSYNC_SOURCE: $RSYNC_SOURCE
+          RSYNC_TARGET: ${{env.RSYNC_TARGET}}
+          RSYNC_SOURCE: ${{env.RSYNC_SOURCE}}
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SK }}
           SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
